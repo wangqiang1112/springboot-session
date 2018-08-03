@@ -1,0 +1,86 @@
+https://blog.csdn.net/qq_31001665/article/details/71075743
+https://www.2cto.com/kf/201708/668602.html
+常用注解介绍：
+    @PathVariable：一般我们使用URI template样式映射使用，即url/{param}这种形式，也就是一般我们使用的GET，DELETE，PUT方法会使用到的，我们可以获取URL后所跟的参数。
+    @RequestParam：一般我们使用该注解来获取多个参数，在（）内写入需要获取参数的参数名即可，一般在PUT，POST中比较常用。
+    @RequestBody：该注解和@RequestParam殊途同归，我们使用该注解将所有参数转换，在代码部分在一个个取出来，也是目前我使用到最多的注解来获取参数（因为前端不愿意一个一个接口的调试）例如下代码：
+    @Valid对User类的属性参数进行校验
+示例：
+    @PostMapping("/createUserByMap")
+    public void createUserByMap(@RequestBody Map<String,Object> reqMap){
+        String tel = reqMap.get("tel").toString();
+        String pwd = reqMap.get("pwd").toString();
+        userService.createUser(tel,pwd);
+    }
+
+若使用表单来提交参数
+示例：
+    通过 @ModelAttribute获取POST请求的FORM表单数据
+    @RequestMapping(value="login.action",method=RequestMethod.POST)
+    public String processSubmit(@ModelAttribute("user")User user){
+            System.out.println(user.getName());
+            System.out.println(user.getPsw());
+            return "helloWorld.jsp";
+    }
+    自动注入Bean属性
+    @RequestMapping(value="login.action",method=RequestMethod.POST)
+    public String processSubmit(User user){
+            System.out.println(user.getName());
+            System.out.println(user.getPsw());
+            return "helloWorld.jsp";
+    }
+
+若使用url来提交参数
+示例：
+    1.url格式:login.action?name=username&psw=password
+    @RequestMapping(value="login.action",method=RequestMethod.GET)
+    public String processSubmit(HttpServletRequest request){
+            System.out.println(request.getQueryString());
+            //输出结果为:name=username&psw=password
+            return "helloWorld.jsp";
+    }
+    2.url格式:login/name/psw.action
+    @RequestMapping(value="login/{username}/{password}.action",method=RequestMethod.GET)
+    public String processSubmit(@PathVariable("username")String username,@PathVariable("password")String userPsw){
+            System.out.println(username);
+            System.out.println(userPsw);
+            return "helloWorld.jsp";
+    }
+
+post方式和get方式都可以
+    上面的表单和url的第一种格式均可以下面的方法接收
+    1）HttpServletRequest接收
+    @RequestMapping(value="login.action")
+    public String processSubmit(HttpServletRequest request){
+        String username=request.getParameter("name");
+        String password=request.getParameter("psw");
+        System.out.println("username is:"+username);
+        System.out.println("password is:"+password);
+        return "helloWorld.jsp";
+    }
+    2）用注解@RequestParam绑定请求参数
+    @RequestMapping(value="login.action")
+    public String processSubmit(@RequestParam("name") String username,,@RequestParam("psw") String password){
+        System.out.println("username is:"+username);
+        System.out.println("password is:"+password);
+        return "helloWorld.jsp";
+    }
+    3）另外@RequestParam还可以添加别的参数
+    @RequestParam(value="name",required=false) String username
+    //表示请求中可以没有名字为name的参数，如果没有默认为null
+    @RequestParam(value="name", required=true, defaultValue="zhou") String username
+    //表示如果请求中没有名字为name的参数，默认值为“zhou”
+
+
+
+优化：使用对象直接获取参数
+   当我们掌握以上几种方式来获取参数时，看似已经毫无问题，其实还是有的，如果我们的入参十分多呢？一百几十个参数，你是血一百几十个@RequestParam，还是@RequestBody之后取一百几十个次呢？，明显这些做法都十分麻烦，代码太多，关键是我们懒啊……所以，我们也可以通过POJO来直接获取参数，之后通过GET方法直接把需要的参数取出就好。
+我们来将上一次的方法给改变下：
+/**
+ * 添加用户2
+ * @param userInfo
+ */
+@PostMapping("/createUser2")
+public void createUser2(UserInfo userInfo){
+    userService.createUser(userInfo.getTel(),userInfo.getPassWord());
+}
